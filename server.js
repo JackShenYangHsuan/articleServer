@@ -5,6 +5,8 @@ var axios = require('axios');
 var fs = require('fs');
 var app = express();
 
+var yts = require('youtube-scrape');
+
 
 
 var apiurl = "https://newsapi.org/v1/articles?source=bbc-news&sortBy=top&apiKey=bb22994edea54d5f8a63aca872b34452";
@@ -15,64 +17,24 @@ var id = 0;
 
 app.get('', function(req, res){
 
+  yts('nba playoffs').then((data) => {
+  // data is an array with the first page of results
+  console.log(data)
 
-    axios.get(apiurl).then(function(response){
+  var json = {data:""};
 
-      url = response.data.articles[0].url;
-    })
+  json.data = data;
 
+  fs.writeFile('output.json', JSON.stringify(json, null, 4), function(err){
+    console.log('File successfully written! - Check your project directory for the output.json file');
+  })
+  res.send('check your console');
 
-    request(url, function(err, response, html){
+}, (error) => {
+  // An error occurred
+  console.log(error)
+})
 
-        if(!err){
-          var $ = cheerio.load(html);
-          var json = {url:"", title:"", content:""};
-          json.url = url;
-
-          $('.story-body__h1').filter(function(){
-            var data = $(this);
-            var title = data.text();
-
-            json.title = title;
-          })
-
-          $('.story-body__inner').filter(function(){
-            var data = $(this);
-            var content = data.text();
-
-            var deletedStr = [0];
-            var deleteStart = 0;
-            var deleteEnd = 0;
-            var id = 0;
-
-
-            // delete /***/ to /***/
-            // still not done yet
-
-            for (var i = 0; i < content.length; i++) {
-              if(content[i] === '/'){deletedStr[id++] = i};
-            }
-
-            deleteStart = deletedStr[0];
-            deleteEnd = deletedStr[3];
-
-            console.log(deleteStart);
-
-
-
-            json.content = content;
-          })
-
-
-
-          fs.writeFile(`output.json`, JSON.stringify(json, null, 4), function(err){
-              console.log('File successfully written! - Check your project directory for the output.json file');
-          })
-
-        }
-      })
-
-  res.send('articles from bbc');
 
 })
 
